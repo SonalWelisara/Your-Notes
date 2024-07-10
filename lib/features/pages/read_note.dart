@@ -1,19 +1,19 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:your_notes/features/model/boxNote.dart';
-import 'package:your_notes/features/model/note_model.dart';
 
-class CreateNote extends StatefulWidget {
-  const CreateNote({super.key});
+import '../model/boxNote.dart';
+import '../model/note_model.dart';
 
+class ReadNote extends StatefulWidget{
+  const ReadNote({super.key});
   @override
-  State<StatefulWidget> createState() => _CreateNoteState();
+  State<StatefulWidget> createState() => _ReadNoteState();
+
 }
 
-class _CreateNoteState extends State<CreateNote> {
+class _ReadNoteState extends State {
+
   bool isPressed = false;
   final titleController = TextEditingController();
   final bodyController = TextEditingController();
@@ -27,7 +27,7 @@ class _CreateNoteState extends State<CreateNote> {
       return;
     }
     boxNotes.put(
-        'key_${titleController.text}_${Random().nextInt(100)}',
+        'key_${titleController.text}',    // *****must change
         NoteModel(
             title: titleController.text,
             body: bodyController.text,
@@ -85,7 +85,7 @@ class _CreateNoteState extends State<CreateNote> {
               const SizedBox(
                 height: 20,
               ),
-              TextFormField(
+              TextFormField(    // *****must change
                 controller: titleController,
                 decoration: const InputDecoration(
                   border: InputBorder.none,
@@ -102,7 +102,7 @@ class _CreateNoteState extends State<CreateNote> {
                 keyboardType: TextInputType.multiline,
                 maxLines: null,
               ),
-              TextFormField(
+              TextFormField(   // *****must change
                 controller: bodyController,
                 decoration: const InputDecoration(
                     border: InputBorder.none,

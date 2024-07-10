@@ -9,7 +9,7 @@ class GoRouterProvider {
   GoRouter getRouter() {
     return GoRouter(
         navigatorKey: AppSettings.rootNavigatorKey,
-        initialLocation: '/home',
+        initialLocation: '/createFirstNote',
         routes: [
           GoRoute(
               path: '/createFirstNote',

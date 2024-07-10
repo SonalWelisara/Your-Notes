@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:your_notes/config/route/go_router_provider.dart';
 import 'package:your_notes/config/theme/theme.dart';
-
+import 'package:your_notes/features/model/note_model.dart';
 import 'core/utility/service_locator.dart';
+import 'features/model/boxNote.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDependencies();
+  await Hive.initFlutter();
+  Hive.registerAdapter(NoteModelAdapter());
+  boxNotes = await Hive.openBox<NoteModel>('notesBox');
 
   final route = sl.get<GoRouterProvider>();
   runApp(MyApp(router: route.getRouter()));

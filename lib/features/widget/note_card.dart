@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:your_notes/features/model/note_model.dart';
 
-Widget noteCard() {
+Widget noteCard(BuildContext context, boxNotes, index) {
+  NoteModel note = boxNotes.getAt(index);
   return InkWell(
-    onTap: () {},
+    onTap: () {
+      context.go('/createNote');
+    },
     child: Container(
-      height: 200,
+      //height: 200,
       width: 200,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.all(Radius.circular(16)),
+        border: Border.all(color: const Color(0xff6e6f71)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -19,53 +25,53 @@ Widget noteCard() {
         ],
       ),
       padding: const EdgeInsets.only(left: 8, top: 6, right: 10, bottom: 8),
-      child: const Column(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          if(note.title.isNotEmpty)
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 6,
               ),
-              SizedBox(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Title',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          // color:
-                          // Theme.of(context).colorScheme.primaryContainer
-                        ),
-                        textAlign: TextAlign.left),
-                    Text('2022/07/01',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.left),
-                  ],
-                ),
-              )
+              Flexible(
+                child: Text(note.title,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                      // color:
+                      // Theme.of(context).colorScheme.primaryContainer
+                    ),
+                    textAlign: TextAlign.left),
+              ),
             ],
           ),
-          SizedBox(
-            height: 10,
+          if(note.body.isNotEmpty)
+          const SizedBox(
+            height: 6,
           ),
+          if(note.body.isNotEmpty)
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Product 1',
-                  style: TextStyle(
-                    fontSize: 14,
+              const SizedBox(
+                width: 6,
+              ),
+              Flexible(
+                child: Text(
+                  note.body,
+                  style: const TextStyle(
+                    fontSize: 18,
                     fontWeight: FontWeight.w500,
                   ),
-                  textAlign: TextAlign.left),
+                  textAlign: TextAlign.left,
+                  maxLines: 10,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
         ],
