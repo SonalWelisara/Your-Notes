@@ -6,19 +6,29 @@ import '../model/boxNote.dart';
 import '../model/note_model.dart';
 
 class ReadNote extends StatefulWidget{
-  const ReadNote({super.key});
+  final int index;
+  const ReadNote({super.key, required this.index});
   @override
   State<StatefulWidget> createState() => _ReadNoteState();
 
 }
 
-class _ReadNoteState extends State {
-
+class _ReadNoteState extends State<ReadNote> {
+  late NoteModel note;
   bool isPressed = false;
   final titleController = TextEditingController();
   final bodyController = TextEditingController();
 
-  onBack(didPop) {
+  @override
+  void initState() {
+    note = boxNotes.getAt(widget.index);
+    titleController.text=note.title;
+    bodyController.text=note.body;
+    isPressed=note.isHearted;
+    super.initState();
+  }
+
+  void onBack(BuildContext context, bool didPop) async {
     if (didPop) {
       return;
     }
@@ -26,15 +36,17 @@ class _ReadNoteState extends State {
       context.go('/home');
       return;
     }
-    boxNotes.put(
-        'key_${titleController.text}',    // *****must change
+    await boxNotes.putAt(
+        widget.index,
         NoteModel(
             title: titleController.text,
             body: bodyController.text,
             dateTime: DateFormat('yMd').format(DateTime.now()),
             isHearted: isPressed));
     //print(boxNotes.get('key_${titleController.text}').toString());
-    context.go('/home');
+    if (context.mounted) {
+      context.go('/home');
+    }
   }
 
   @override
@@ -42,18 +54,14 @@ class _ReadNoteState extends State {
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
-        onBack(didPop);
+        onBack(context, didPop);
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
-          centerTitle: true,
-          title: const Text('New Note'),
-          backgroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              onBack(false);
+              onBack(context, false);
             },
           ),
           actions: [
@@ -71,7 +79,7 @@ class _ReadNoteState extends State {
                   ),
                   Icon(
                     Icons.favorite,
-                    color: (isPressed) ? const Color(0xff555555) : Colors.white,
+                    color: (isPressed) ? const Color(0xff555555) : Theme.of(context).colorScheme.surface,
                   ),
                 ]),
                 splashColor: Colors.transparent,
@@ -92,11 +100,9 @@ class _ReadNoteState extends State {
                   hintText: 'Title',
                   hintStyle: TextStyle(
                     fontSize: 26,
-                    color: Color(0xff555555),
                   ),
                 ),
                 style: const TextStyle(
-                  color: Colors.black,
                   fontSize: 26,
                 ),
                 keyboardType: TextInputType.multiline,
@@ -108,11 +114,8 @@ class _ReadNoteState extends State {
                     border: InputBorder.none,
                     hintText: 'Note',
                     hintStyle: TextStyle(
-                      fontSize: 22,
-                      color: Color(0xff555555),
                     )),
                 style: const TextStyle(
-                  color: Colors.black,
                   fontSize: 22,
                 ),
                 keyboardType: TextInputType.multiline,

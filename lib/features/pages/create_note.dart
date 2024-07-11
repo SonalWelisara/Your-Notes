@@ -27,13 +27,13 @@ class _CreateNoteState extends State<CreateNote> {
       return;
     }
     boxNotes.put(
-        'key_${titleController.text}_${Random().nextInt(100)}',
+        'key_${titleController.text}',
         NoteModel(
             title: titleController.text,
             body: bodyController.text,
             dateTime: DateFormat('yMd').format(DateTime.now()),
             isHearted: isPressed));
-    //print(boxNotes.get('key_${titleController.text}').toString());
+    print(boxNotes.get('key_${titleController.text}').toString());
     context.go('/home');
   }
 
@@ -45,11 +45,10 @@ class _CreateNoteState extends State<CreateNote> {
         onBack(didPop);
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+
         appBar: AppBar(
           centerTitle: true,
           title: const Text('New Note'),
-          backgroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -71,7 +70,7 @@ class _CreateNoteState extends State<CreateNote> {
                   ),
                   Icon(
                     Icons.favorite,
-                    color: (isPressed) ? const Color(0xff555555) : Colors.white,
+                    color: (isPressed) ? const Color(0xff555555) : Theme.of(context).colorScheme.surface,
                   ),
                 ]),
                 splashColor: Colors.transparent,
@@ -92,11 +91,9 @@ class _CreateNoteState extends State<CreateNote> {
                   hintText: 'Title',
                   hintStyle: TextStyle(
                     fontSize: 26,
-                    color: Color(0xff555555),
                   ),
                 ),
                 style: const TextStyle(
-                  color: Colors.black,
                   fontSize: 26,
                 ),
                 keyboardType: TextInputType.multiline,
@@ -109,10 +106,8 @@ class _CreateNoteState extends State<CreateNote> {
                     hintText: 'Note',
                     hintStyle: TextStyle(
                       fontSize: 22,
-                      color: Color(0xff555555),
                     )),
                 style: const TextStyle(
-                  color: Colors.black,
                   fontSize: 22,
                 ),
                 keyboardType: TextInputType.multiline,

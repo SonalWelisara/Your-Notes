@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:your_notes/features/pages/create_note.dart';
 
 class CreateFirstNote extends StatelessWidget{
@@ -39,7 +40,13 @@ class CreateFirstNote extends StatelessWidget{
               ),
               const SizedBox(height: 100,),
               GestureDetector(
-                onTap: ()=>context.go('/createNote'),
+                onTap: () async {
+                  var sharedPreferences = await SharedPreferences.getInstance();
+                  sharedPreferences.setBool('keyFirstTime', false);
+                  if(context.mounted) {
+                    GoRouter.of(context).go('/createNote');
+                  }
+                  },
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   width: 260,
