@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../model/boxNote.dart';
 import '../model/note_model.dart';
 
-class ReadNote extends StatefulWidget{
-  final int index;
-  const ReadNote({super.key, required this.index});
+class ReadNote extends StatefulWidget {
+  final String noteKey;
+
+  const ReadNote({super.key, required this.noteKey});
+
   @override
   State<StatefulWidget> createState() => _ReadNoteState();
-
 }
 
 class _ReadNoteState extends State<ReadNote> {
@@ -18,41 +18,55 @@ class _ReadNoteState extends State<ReadNote> {
   bool isPressed = false;
   final titleController = TextEditingController();
   final bodyController = TextEditingController();
+  late DateTime dateTime;
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    bodyController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
-    note = boxNotes.getAt(widget.index);
-    titleController.text=note.title;
-    bodyController.text=note.body;
-    isPressed=note.isHearted;
+    note = boxNotes.get(widget.noteKey);
+    titleController.text = note.title;
+    bodyController.text = note.body;
+    isPressed = note.isHearted;
     super.initState();
   }
 
-  void onBack(BuildContext context, bool didPop) async {
+  Future<void> onBack(BuildContext context, bool didPop) async {
     if (didPop) {
       return;
     }
-    if(titleController.text.isEmpty && bodyController.text.isEmpty){
-      context.go('/home');
+    if (titleController.text.isEmpty && bodyController.text.isEmpty) {
+      GoRouter.of(context).go('/home');
       return;
     }
-    await boxNotes.putAt(
-        widget.index,
+    if (note.title != titleController.text ||
+        note.body != bodyController.text) {
+      dateTime = DateTime.now();
+    } else {
+      dateTime = note.dateTime;
+    }
+    await boxNotes.put(
+        widget.noteKey,
         NoteModel(
             title: titleController.text,
             body: bodyController.text,
-            dateTime: DateFormat('yMd').format(DateTime.now()),
+            dateTime: dateTime,
             isHearted: isPressed));
     //print(boxNotes.get('key_${titleController.text}').toString());
     if (context.mounted) {
-      context.go('/home');
+      GoRouter.of(context).go('/home');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvoked: (didPop) {
         onBack(context, didPop);
       },
@@ -79,7 +93,9 @@ class _ReadNoteState extends State<ReadNote> {
                   ),
                   Icon(
                     Icons.favorite,
-                    color: (isPressed) ? const Color(0xff555555) : Theme.of(context).colorScheme.surface,
+                    color: (isPressed)
+                        ? const Color(0xff555555)
+                        : Theme.of(context).colorScheme.surface,
                   ),
                 ]),
                 splashColor: Colors.transparent,
@@ -88,40 +104,41 @@ class _ReadNoteState extends State<ReadNote> {
         ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 20,
-              ),
-              TextFormField(    // *****must change
-                controller: titleController,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Title',
-                  hintStyle: TextStyle(
-                    fontSize: 26,
-                  ),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 20,
                 ),
-                style: const TextStyle(
-                  fontSize: 26,
-                ),
-                keyboardType: TextInputType.multiline,
-                maxLines: null,
-              ),
-              TextFormField(   // *****must change
-                controller: bodyController,
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Note',
-                    hintStyle: TextStyle(
-                    )),
-                style: const TextStyle(
-                  fontSize: 22,
-                ),
-                keyboardType: TextInputType.multiline,
-                maxLines: null,
-              )
-            ],
+                TextFormField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Title',
+                      hintStyle: TextStyle(
+                        fontSize: 26,
+                      ),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 26,
+                    ),
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    textCapitalization: TextCapitalization.sentences),
+                TextFormField(
+                    controller: bodyController,
+                    decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Note',
+                        hintStyle: TextStyle()),
+                    style: const TextStyle(
+                      fontSize: 22,
+                    ),
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    textCapitalization: TextCapitalization.sentences)
+              ],
+            ),
           ),
         ),
       ),

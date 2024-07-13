@@ -6,6 +6,7 @@ import 'package:your_notes/features/pages/create_first_note.dart';
 import 'package:your_notes/features/pages/create_note.dart';
 import 'package:your_notes/features/pages/home.dart';
 import 'package:your_notes/features/pages/read_note.dart';
+import 'package:your_notes/features/pages/search.dart';
 
 class GoRouterProvider {
   GoRouter getRouter() {
@@ -70,9 +71,30 @@ class GoRouterProvider {
           GoRoute(
               path: '/readNote',
               pageBuilder: (BuildContext context, GoRouterState state) {
-                final int index = state.extra as int;
+                final String noteKey = state.extra as String;
                 return CustomTransitionPage(
-                  child: ReadNote(index: index,),
+                  child: ReadNote(noteKey: noteKey),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(0.0, 1.0);
+                    const end = Offset.zero;
+                    const curve = Curves.ease;
+
+                    var tween = Tween(begin: begin, end: end)
+                        .chain(CurveTween(curve: curve));
+
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
+                );
+              }),
+          GoRoute(
+              path: '/search',
+              pageBuilder: (BuildContext context, GoRouterState state) {
+                return CustomTransitionPage(
+                  child: const Search(),
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
                     const begin = Offset(0.0, 1.0);

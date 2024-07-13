@@ -1,9 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:your_notes/features/model/boxNote.dart';
 import 'package:your_notes/features/widget/note_card.dart';
+
+import '../model/note_model.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -13,8 +14,23 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<int> _selectedIndexList = [];
+  final List<String> _selectedKeyList = [];
   bool _selectionMode = false;
+
+  List<NoteModel> _orderedNotes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _getOrderedNotes();
+  }
+
+  void _getOrderedNotes() {
+    setState(() {
+      _orderedNotes =boxNotes.values.cast<NoteModel>().toList();
+      _orderedNotes.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,76 +43,89 @@ class _HomeState extends State<Home> {
                 crossAxisCount: 2,
                 mainAxisSpacing: 8,
                 crossAxisSpacing: 8,
-                itemCount: boxNotes.length,
-                itemBuilder: (context, index) => GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (_selectionMode) {
-                          if (_selectedIndexList.contains(index)) {
-                            _selectedIndexList.remove(index);
-                            print(_selectedIndexList);
-                            if (_selectedIndexList.isEmpty) {
-                              _changeSelection(enable: false, index: -1);
-                              print(_selectedIndexList);
+                itemCount: _orderedNotes.length,
+                itemBuilder: (context, index) {
+                  final note = _orderedNotes[index];
+                  //print(note.key);
+                  return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (_selectionMode) {
+                            if (_selectedKeyList.contains(note.key)) {
+                              _selectedKeyList.remove(note.key);
+                              if (_selectedKeyList.isEmpty) {
+                                _changeSelection(enable: false, key: '-1');
+                              }
+                            } else {
+                              _selectedKeyList.add(note.key);
                             }
                           } else {
-                            _selectedIndexList.add(index);
-                            print(_selectedIndexList);
+                            GoRouter.of(context)
+                                .go('/readNote', extra: note.key);
                           }
-                        } else {
-                          GoRouter.of(context).go('/readNote', extra: index);
-                        }
-                      });
-                    },
-                    onLongPress: () {
-                      setState(() {
-                        if (!_selectionMode) {
-                          _changeSelection(enable: true, index: index);
-                          print(_selectedIndexList);
-                        } else {
-                          if (_selectedIndexList.contains(index)) {
-                            _selectedIndexList.remove(index);
-                            print(_selectedIndexList);
-                            if (_selectedIndexList.isEmpty) {
-                              _changeSelection(enable: false, index: -1);
-                              print(_selectedIndexList);
-                            }
+                        });
+                      },
+                      onLongPress: () {
+                        setState(() {
+                          if (!_selectionMode) {
+                            _changeSelection(enable: true, key: note.key);
                           } else {
-                            _selectedIndexList.add(index);
-                            print(_selectedIndexList);
+                            if (_selectedKeyList.contains(note.key)) {
+                              _selectedKeyList.remove(note.key);
+                              if (_selectedKeyList.isEmpty) {
+                                _changeSelection(enable: false, key: '-1');
+                              }
+                            } else {
+                              _selectedKeyList.add(note.key);
+                            }
                           }
-                        }
-                      });
-                    },
-                    child: noteCard(context, boxNotes, index, _selectionMode,
-                        _selectedIndexList))),
+                        });
+                      },
+                      child: noteCard(
+                          context, note, _selectionMode, _selectedKeyList));
+                }),
             Positioned(
-                left: 0,
-                right: 0,
+                width: 54,
+                height: 54,
                 bottom: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    context.go('/createNote');
-                  },
+                right: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.add,
+                      size: 36,
+                    ),
+                    onPressed: () {
+                      GoRouter.of(context).go('/createNote');
+                    },
+                  ),
                 ))
           ]),
         ));
   }
 
-  void _changeSelection({required bool enable, required int index}) {
+  void _changeSelection({required bool enable, required String key}) {
     _selectionMode = enable;
-    _selectedIndexList.add(index);
-    if (index == -1) {
-      _selectedIndexList.clear();
+    _selectedKeyList.add(key);
+    if (key == '-1') {
+      _selectedKeyList.clear();
     }
+    _getOrderedNotes();
   }
 
   AppBar _defaultAppBar() {
     return AppBar(
       centerTitle: true,
       title: GestureDetector(
-        onTap: () {},
+        onTap: () {
+          setState(() {
+            GoRouter.of(context).go('/search');
+          });
+        },
         child: Container(
           height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -108,7 +137,7 @@ class _HomeState extends State<Home> {
             children: [
               Expanded(
                 child: Text(
-                  'Search your notes',
+                  'Your Notes',
                   style: TextStyle(
                     fontSize: 18,
                   ),
@@ -129,15 +158,23 @@ class _HomeState extends State<Home> {
         icon: const Icon(Icons.close),
         onPressed: () {
           setState(() {
-            _changeSelection(enable: false, index: -1);
+            _changeSelection(enable: false, key: '-1');
           });
         },
       ),
       title: Text(
-        _selectedIndexList.length.toString(),
+        _selectedKeyList.length.toString(),
       ),
       actions: [
-        IconButton(onPressed: (){}, icon: const Icon(Icons.delete_outline))
+        IconButton(
+            onPressed: () async {
+              for (var i in _selectedKeyList) {
+                await boxNotes.delete(i);
+              }
+              _changeSelection(enable: false, key: '-1');
+              setState(() {});
+            },
+            icon: const Icon(Icons.delete_outline))
       ],
     );
   }

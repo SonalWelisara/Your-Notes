@@ -14,7 +14,7 @@ class NoteModel extends HiveObject {
   bool isHearted;
 
   @HiveField(3)
-  String dateTime;
+  DateTime dateTime;
 
   NoteModel(
       {required this.title,

@@ -20,7 +20,7 @@ class NoteModelAdapter extends TypeAdapter<NoteModel> {
       title: fields[0] as String,
       body: fields[1] as String,
       isHearted: fields[2] as bool,
-      dateTime: fields[3] as String,
+      dateTime: fields[3] as DateTime,
     );
   }
 
