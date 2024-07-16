@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:your_notes/features/model/boxNote.dart';
+import 'package:your_notes/features/widget/buildNoteGrid.dart';
 import 'package:your_notes/features/widget/note_card.dart';
 
 import '../model/note_model.dart';
@@ -18,6 +19,8 @@ class _HomeState extends State<Home> {
   bool _selectionMode = false;
 
   List<NoteModel> _orderedNotes = [];
+  List<NoteModel> _pinnedNotes = [];
+  List<NoteModel> _unpinnedNotes = [];
 
   @override
   void initState() {
@@ -26,95 +29,102 @@ class _HomeState extends State<Home> {
   }
 
   void _getOrderedNotes() {
+    // setState(() {
+    //   _orderedNotes = boxNotes.values.cast<NoteModel>().toList();
+    //   _orderedNotes.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    // });
+
     setState(() {
-      _orderedNotes =boxNotes.values.cast<NoteModel>().toList();
-      _orderedNotes.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      _pinnedNotes = boxNotes.values
+          .cast<NoteModel>()
+          .where((note) => note.isHearted == true)
+          .toList();
+      _unpinnedNotes = boxNotes.values
+          .cast<NoteModel>()
+          .where((note) => note.isHearted == false)
+          .toList();
+      _pinnedNotes.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      _unpinnedNotes.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    });
+  }
+
+  void _changeSelection({required bool enable, required String key}) {
+    setState(() {
+      _selectionMode = enable;
+      _selectedKeyList.add(key);
+      if (key == '-1') {
+        _selectedKeyList.clear();
+      }
+      _getOrderedNotes();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: (_selectionMode) ? _selectionAppbar() : _defaultAppBar(),
-        body: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: Stack(children: [
-            MasonryGridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                itemCount: _orderedNotes.length,
-                itemBuilder: (context, index) {
-                  final note = _orderedNotes[index];
-                  //print(note.key);
-                  return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if (_selectionMode) {
-                            if (_selectedKeyList.contains(note.key)) {
-                              _selectedKeyList.remove(note.key);
-                              if (_selectedKeyList.isEmpty) {
-                                _changeSelection(enable: false, key: '-1');
-                              }
-                            } else {
-                              _selectedKeyList.add(note.key);
-                            }
-                          } else {
-                            GoRouter.of(context)
-                                .go('/readNote', extra: note.key);
-                          }
-                        });
-                      },
-                      onLongPress: () {
-                        setState(() {
-                          if (!_selectionMode) {
-                            _changeSelection(enable: true, key: note.key);
-                          } else {
-                            if (_selectedKeyList.contains(note.key)) {
-                              _selectedKeyList.remove(note.key);
-                              if (_selectedKeyList.isEmpty) {
-                                _changeSelection(enable: false, key: '-1');
-                              }
-                            } else {
-                              _selectedKeyList.add(note.key);
-                            }
-                          }
-                        });
-                      },
-                      child: noteCard(
-                          context, note, _selectionMode, _selectedKeyList));
-                }),
-            Positioned(
-                width: 54,
-                height: 54,
-                bottom: 16,
-                right: 16,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    color: Theme.of(context).colorScheme.secondaryContainer,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.add,
-                      size: 36,
-                    ),
-                    onPressed: () {
-                      GoRouter.of(context).go('/createNote');
-                    },
-                  ),
-                ))
+      appBar: (_selectionMode) ? _selectionAppbar() : _defaultAppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: SingleChildScrollView(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (_pinnedNotes.isNotEmpty)
+              const Padding(
+                padding: EdgeInsets.only(left: 10, top: 12, bottom: 12),
+                child: Text(
+                  'Pinned',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            if (_pinnedNotes.isNotEmpty)
+              NoteGrid(
+                notes: _pinnedNotes,
+                selectionMode: _selectionMode,
+                selectedKeyList: _selectedKeyList,
+                changeSelection: _changeSelection,
+                onNoteGridChange: () {
+                  setState(() {});
+                },
+                scrollable: false,
+              ),
+            if (_unpinnedNotes.isNotEmpty && _pinnedNotes.isNotEmpty)
+              const Padding(
+                padding: EdgeInsets.only(left: 10, top: 12, bottom: 12),
+                child: Text(
+                  'Others',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            if (_unpinnedNotes.isNotEmpty)
+              NoteGrid(
+                notes: _unpinnedNotes,
+                selectionMode: _selectionMode,
+                selectedKeyList: _selectedKeyList,
+                changeSelection: _changeSelection,
+                onNoteGridChange: () {
+                  setState(() {});
+                },
+                scrollable: false,
+              )
           ]),
-        ));
-  }
-
-  void _changeSelection({required bool enable, required String key}) {
-    _selectionMode = enable;
-    _selectedKeyList.add(key);
-    if (key == '-1') {
-      _selectedKeyList.clear();
-    }
-    _getOrderedNotes();
+        ),
+      ),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: Theme.of(context).colorScheme.secondaryContainer,
+        ),
+        child: IconButton(
+          icon: const Icon(
+            Icons.add,
+            size: 36,
+          ),
+          onPressed: () {
+            GoRouter.of(context).go('/createNote');
+          },
+        ),
+      ),
+    );
   }
 
   AppBar _defaultAppBar() {

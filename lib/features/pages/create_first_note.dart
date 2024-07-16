@@ -3,13 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:your_notes/features/pages/create_note.dart';
 
-class CreateFirstNote extends StatelessWidget{
+class CreateFirstNote extends StatelessWidget {
   const CreateFirstNote({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -23,8 +22,8 @@ class CreateFirstNote extends StatelessWidget{
                   Text(
                     'Create Your First Note',
                     style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800
                     ),
                   ),
                   SizedBox(height: 8,),
@@ -43,22 +42,25 @@ class CreateFirstNote extends StatelessWidget{
                 onTap: () async {
                   var sharedPreferences = await SharedPreferences.getInstance();
                   sharedPreferences.setBool('keyFirstTime', false);
-                  if(context.mounted) {
+                  if (context.mounted) {
                     GoRouter.of(context).go('/createNote');
                   }
-                  },
+                },
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   width: 260,
                   decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(12)
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .inversePrimary,
+                      borderRadius: BorderRadius.circular(12)
                   ),
                   child: const Center(
                     child: Text(
                       'Create A Note',
                       style: TextStyle(
-                        color: Colors.white,
+                        //color:
                         fontSize: 24,
                       ),
                     ),

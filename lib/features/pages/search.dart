@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
-
-import '../model/boxNote.dart';
-import '../model/note_model.dart';
-import '../widget/note_card.dart';
+import 'package:your_notes/features/model/boxNote.dart';
+import 'package:your_notes/features/model/note_model.dart';
+import 'package:your_notes/features/widget/buildNoteGrid.dart';
 
 class Search extends StatefulWidget {
   const Search({super.key});
@@ -59,6 +57,17 @@ class _SearchState extends State<Search> {
     });
   }
 
+  void _changeSelection({required bool enable, required String key}) {
+    setState(() {
+      _selectionMode = enable;
+      _selectedKeyList.add(key);
+      if (key == '-1') {
+        _selectedKeyList.clear();
+      }
+      _getSearchedNotes();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,93 +75,35 @@ class _SearchState extends State<Search> {
         body: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            setState(() {
-              FocusScope.of(context).unfocus();
-            });
+            _searchFocus.unfocus();
           },
           child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: (_searchedNotes.isEmpty && searchController.text.isNotEmpty)
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search,
-                          size: 64,
-                        ),
-                        Text('No matching notes')
-                      ],
-                    ),
-                  )
-                : Stack(children: [
-                    MasonryGridView.count(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        itemCount: _searchedNotes.length,
-                        itemBuilder: (context, index) {
-                          final note = _searchedNotes[index];
-                          //print(note.key);
-                          return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  if (_selectionMode) {
-                                    if (_selectedKeyList.contains(note.key)) {
-                                      _selectedKeyList.remove(note.key);
-                                      print(_selectedKeyList);
-                                      if (_selectedKeyList.isEmpty) {
-                                        _changeSelection(
-                                            enable: false, key: '-1');
-                                        print(_selectedKeyList);
-                                      }
-                                    } else {
-                                      _selectedKeyList.add(note.key);
-                                      print(_selectedKeyList);
-                                    }
-                                  } else {
-                                    GoRouter.of(context)
-                                        .go('/readNote', extra: note.key);
-                                  }
-                                });
-                              },
-                              onLongPress: () {
-                                setState(() {
-                                  if (!_selectionMode) {
-                                    _changeSelection(
-                                        enable: true, key: note.key);
-                                    print(_selectedKeyList);
-                                  } else {
-                                    if (_selectedKeyList.contains(note.key)) {
-                                      _selectedKeyList.remove(note.key);
-                                      print(_selectedKeyList);
-                                      if (_selectedKeyList.isEmpty) {
-                                        _changeSelection(
-                                            enable: false, key: '-1');
-                                        print(_selectedKeyList);
-                                      }
-                                    } else {
-                                      _selectedKeyList.add(note.key);
-                                      print(_selectedKeyList);
-                                    }
-                                  }
-                                });
-                              },
-                              child: noteCard(context, note, _selectionMode,
-                                  _selectedKeyList));
-                        }),
-                  ]),
-          ),
+              padding: const EdgeInsets.all(4.0),
+              child:
+                  (_searchedNotes.isEmpty && searchController.text.isNotEmpty)
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.search,
+                                size: 64,
+                              ),
+                              Text('No matching notes')
+                            ],
+                          ),
+                        )
+                      : NoteGrid(
+                          notes: _searchedNotes,
+                          selectionMode: _selectionMode,
+                          selectedKeyList: _selectedKeyList,
+                          changeSelection: _changeSelection,
+                          onNoteGridChange: () {
+                            setState(() {});
+                          },
+                          scrollable: true,
+                        )),
         ));
-  }
-
-  void _changeSelection({required bool enable, required String key}) {
-    _selectionMode = enable;
-    _selectedKeyList.add(key);
-    if (key == '-1') {
-      _selectedKeyList.clear();
-    }
-    _getSearchedNotes();
   }
 
   AppBar _defaultAppBar() {
